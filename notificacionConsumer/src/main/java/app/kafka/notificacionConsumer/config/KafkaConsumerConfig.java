@@ -1,8 +1,7 @@
 package app.kafka.notificacionConsumer.config;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import app.kafka.notificacionConsumer.models.Usuario;
+import app.kafka.notificacionConsumer.models.UsuarioDeserializer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,37 +13,60 @@ import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 
-import app.kafka.notificacionConsumer.models.Usuario;
-import app.kafka.notificacionConsumer.models.UsuarioDeserializer;
+import java.util.HashMap;
+import java.util.Map;
 
 @EnableKafka
 @Configuration
 public class KafkaConsumerConfig {
 
+	/** Url del servidor kafka */
 	@Value("${spring.kafka.consumer.bootstrap-servers}")
 	private String kafkaServer;
-	
-	@Value("${spring.kafka.consumer.group-id}")
-	private String idGroup;
-	
+
+	/**********************************************************
+		Props JsonSerializer (Objecto Usuario)
+	 *********************************************************/
 	@Bean
 	public ConsumerFactory<String, Usuario> consumerFactory() {
-        Map<String, Object> props = new HashMap<>();
-        //JsonDeserializer<Usuario> jsonDeserializer = new JsonDeserializer<>();
-       //nDeserializer.addTrustedPackages("*");
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaServer);
-        //props.put(ConsumerConfig.GROUP_ID_CONFIG, idGroup);
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
-        //props.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
-        return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(),
-        		new UsuarioDeserializer());
+        Map<String, Object> propiedadesConsumer = new HashMap<>();
+        propiedadesConsumer.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaServer);
+        propiedadesConsumer.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        propiedadesConsumer.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
+
+        return new DefaultKafkaConsumerFactory<>(propiedadesConsumer, new StringDeserializer(), new UsuarioDeserializer());
     }
 
-	@Bean(name = "kafkaTopic")
+	@Bean(name = "beanUserContainerFactory")
 	public ConcurrentKafkaListenerContainerFactory<String, Usuario> userKafkaListenerFactory() {
 		ConcurrentKafkaListenerContainerFactory<String, Usuario> factory = new ConcurrentKafkaListenerContainerFactory<>();
 		factory.setConsumerFactory(consumerFactory());
 		return factory;
 	}
+
+	/**********************************************************
+		Props StringSerializer (Cadena message)
+	 *********************************************************/
+	@Bean
+	public ConsumerFactory<String, String> consumerStringFactory() {
+		Map<String, Object> propiedadesConsumer = new HashMap<>();
+		propiedadesConsumer.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaServer);
+		propiedadesConsumer.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+		propiedadesConsumer.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+
+		return new DefaultKafkaConsumerFactory<>(propiedadesConsumer, new StringDeserializer(), new StringDeserializer());
+	}
+
+	@Bean(name = "beanStringContainerFactory")
+	public ConcurrentKafkaListenerContainerFactory<String, String> stringKafkaListenerFactory() {
+		ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
+		factory.setConsumerFactory(consumerStringFactory());
+		return factory;
+	}
+
+
+
+
+
+
 }

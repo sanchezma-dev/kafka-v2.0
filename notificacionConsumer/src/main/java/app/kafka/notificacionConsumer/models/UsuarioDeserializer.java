@@ -5,9 +5,12 @@ import org.springframework.kafka.support.serializer.JsonDeserializer;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 
+/**
+ * Clase encargada de deserializar el objeto Usuario y evitar así problemas con la deserialización
+ */
 public class UsuarioDeserializer implements Deserializer<Usuario>{
 	
-	
+	/** Interfaz de deserializador personalizado */
 	private final JsonDeserializer<Usuario> jsonDeserializer;
 
 	public UsuarioDeserializer() {
@@ -15,7 +18,7 @@ public class UsuarioDeserializer implements Deserializer<Usuario>{
 	}
 
 	@Override
-	public Usuario deserialize(String topic, byte[] data) {
+	public Usuario deserialize(final String topic, final byte[] data) {
 		return this.jsonDeserializer.deserialize(topic, data);
 	}
 
